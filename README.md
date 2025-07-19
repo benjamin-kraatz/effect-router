@@ -1,5 +1,7 @@
 # Effect Router (WT)
 
+![NPM Version](https://img.shields.io/npm/v/effect-router)
+
 A typesafe, [Effect](https://effect.website)-based router for React applications.
 
 > [!WARNING]
