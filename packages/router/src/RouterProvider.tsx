@@ -39,6 +39,9 @@ export function RouterProvider<T extends readonly BaseRoute[]>({
   }, [routes]);
 
   useEffect(() => {
+    // Collect all loader effects first
+    const loaderEffects: Array<{ index: number; effect: Effect.Effect<unknown, unknown, never> }> = [];
+    
     matchedRoutes.forEach((route, index) => {
       if (route.loader != null) {
         setLoaderData((data) => {
@@ -53,29 +56,48 @@ export function RouterProvider<T extends readonly BaseRoute[]>({
           ? route.loader(route.params.parse(rawParams))
           : route.loader();
 
-        Effect.runPromise(loaderEffect)
-          .then((result) => {
-            setLoaderData((data) => {
-              const newData = [...data];
-              newData[index] = {
-                data: result,
-                state: "loaded",
-              };
-              return newData;
-            });
-          })
-          .catch((error) => {
-            setLoaderData((data) => {
-              const newData = [...data];
-              newData[index] = {
-                state: "error",
-                error,
-              };
-              return newData;
-            });
-          });
+        loaderEffects.push({ index, effect: loaderEffect });
       }
     });
+
+    // Run all loader effects in parallel using Effect.all with proper error handling
+    if (loaderEffects.length > 0) {
+      // Transform each effect to always succeed, carrying success/error state
+      const safeEffects = loaderEffects.map(({ index, effect }) =>
+        effect.pipe(
+          Effect.map((data) => ({ index, success: true as const, data })),
+          Effect.catchAll((error) => 
+            Effect.succeed({ index, success: false as const, error })
+          )
+        )
+      );
+      
+      const allEffects = Effect.all(safeEffects);
+      
+      //#region Run effects from loaders
+      Effect.runPromise(allEffects).then((results) => {
+        setLoaderData((data) => {
+          const newData = [...data];
+          
+          results.forEach((result) => {
+            if (result.success) {
+              newData[result.index] = {
+                data: result.data,
+                state: "loaded",
+              };
+            } else {
+              newData[result.index] = {
+                state: "error",
+                error: result.error as Error,
+              };
+            }
+          });
+          
+          return newData;
+        });
+      });
+      //#endregion
+    }
   }, [matchedRoutes, rawParams]);
 
   // Ensure initial route matching on mount and when routes change

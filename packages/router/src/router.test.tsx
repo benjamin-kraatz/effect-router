@@ -49,7 +49,8 @@ const loaderRoute = defineRoute("/loader", {
 // Define all routes for the test router
 const routes = [homeRoute, aboutRoute, loaderRoute] as const;
 
-// Augment the module for type safety
+// Augment the module for type safety.
+// NOTE: Module augmentation in test files can cause issues with type isolation between tests
 declare module "effect-router" {
   interface Register {
     routes: typeof routes;
