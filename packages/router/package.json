@@ -3,21 +3,44 @@
   "private": false,
   "version": "0.2.2-alpha.8",
   "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benjamin-kraatz/effect-router.git",
+    "directory": "packages/router"
+  },
+  "keywords": [
+    "react",
+    "router",
+    "effect",
+    "typescript",
+    "routing"
+  ],
+  "author": "Benjamin Kraatz <benndev@pm.me>",
+  "license": "MIT",
+  "homepage": "https://github.com/benjamin-kraatz/effect-router#readme",
+  "bugs": {
+    "url": "https://github.com/benjamin-kraatz/effect-router/issues"
   },
   "scripts": {
     "build": "tsc -b",
     "lint": "eslint .",
     "check-types": "tsc --noEmit"
   },
+  "peerDependencies": {
+    "effect": "^3.16.16",
+    "react": ">=18.0.0 <20.0.0",
+    "react-dom": ">=18.0.0 <20.0.0"
+  },
   "dependencies": {
-    "@effect/opentelemetry": "catalog:effect",
-    "@effect/platform": "catalog:effect",
-    "@effect/rpc": "catalog:effect",
-    "effect": "catalog:effect",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
