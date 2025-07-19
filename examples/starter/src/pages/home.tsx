@@ -40,6 +40,9 @@ function HomePage() {
 
     // This should also work (no params route)
     navigate({ url: "/" });
+    
+    // This should NOT work (route does not exist)
+    navigate({ url: "/any-arbitrary-invalid-route" });
 
     // Now let's test with a route that doesn't match the expected pattern
     // navigate({ url: "/about/:id", params: { wrongParam: 1 } }); // This should error because wrongParam doesn't match the expected id
