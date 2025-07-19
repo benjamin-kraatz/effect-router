@@ -1,6 +1,6 @@
 # Effect Router Changelog
 
-## Monorepo Restructure & TypeScript Compatibility Fixes (Latest)
+## v0.1.3-alpha.4 - Monorepo Restructure & TypeScript Compatibility Fixes (Latest)
 
 ### Overview
 Major project restructuring into a monorepo architecture with separate packages and examples, combined with comprehensive TypeScript compilation fixes throughout the router system.
