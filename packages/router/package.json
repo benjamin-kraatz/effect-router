@@ -1,0 +1,66 @@
+{
+  "name": "effect-router",
+  "private": false,
+  "version": "0.3.2-alpha.13",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benjamin-kraatz/effect-router.git",
+    "directory": "packages/router"
+  },
+  "keywords": [
+    "react",
+    "router",
+    "effect",
+    "typescript",
+    "routing"
+  ],
+  "author": "Benjamin Kraatz <benndev@pm.me>",
+  "license": "MIT",
+  "homepage": "https://github.com/benjamin-kraatz/effect-router#readme",
+  "bugs": {
+    "url": "https://github.com/benjamin-kraatz/effect-router/issues"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
+  },
+  "peerDependencies": {
+    "effect": "^3.16.16",
+    "react": ">=18.0.0 <20.0.0",
+    "react-dom": ">=18.0.0 <20.0.0"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@effect/language-service": "catalog:effect",
+    "@eslint/js": "^9.30.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitest/ui": "^2.0.5",
+    "eslint": "^9.30.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "jsdom": "^26.1.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.35.1",
+    "vitest": "^2.0.5",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/jest-dom": "^6.4.8"
+  },
+  "packageManager": "pnpm@10.7.1+sha512.2d92c86b7928dc8284f53494fb4201f983da65f0fb4f0d40baafa5cf628fa31dae3e5968f12466f17df7e97310e30f343a648baea1b9b350685dafafffdf5808"
+}
