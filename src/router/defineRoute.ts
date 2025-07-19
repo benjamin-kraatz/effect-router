@@ -6,7 +6,7 @@ import {
   RouteWithParams,
 } from "./types";
 import { useLoaderContext } from "./outletHooks";
-import { LoaderResult } from "./routerTypes";
+import { LoaderError, LoaderResult } from "./routerTypes";
 import { useRouterContext } from "./routerHooks";
 
 type ExtractAllParamKeys<Path> =
@@ -29,6 +29,7 @@ export function defineRoute<
   const Path extends string,
   const Params extends Path extends DynamicRoute ? z.AnyZodObject : never,
   const Loader,
+  const LoaderErrorType extends LoaderError,
   const Layout extends boolean = false
 >(
   path: Path,
@@ -36,9 +37,9 @@ export function defineRoute<
     ? Params extends z.AnyZodObject
       ? ValidateParams<Path, Params> extends never
         ? never
-        : Omit<RouteWithParams<Params, Loader, Layout>, "path">
+        : Omit<RouteWithParams<Params, Loader, LoaderErrorType, Layout>, "path">
       : never
-    : Omit<RouteWithNoParams<Loader, Layout>, "path">
+    : Omit<RouteWithNoParams<Loader, LoaderErrorType, Layout>, "path">
 ) {
   return {
     ...route,

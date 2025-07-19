@@ -1,4 +1,5 @@
 import { Effect, Exit } from "effect";
+import { YieldableError } from "effect/Cause";
 
 export type LoaderResult<Loader> =
   | {
@@ -17,6 +18,12 @@ export type LoaderResult<Loader> =
       error: Error;
     };
 
-export type LoaderEffect<Loader> = Effect.Effect<Loader, unknown, never>;
+export type LoaderError = YieldableError ;
 
-export type LoaderExit<Loader> = Exit.Exit<Loader, unknown>; 
+export type LoaderEffect<Loader, E extends LoaderError> = Effect.Effect<
+  Loader,
+  E,
+  never
+>;
+
+export type LoaderExit<Loader, E extends LoaderError> = Exit.Exit<Loader, E>;
