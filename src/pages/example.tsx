@@ -1,21 +1,22 @@
 /* eslint-disable react-refresh/only-export-components */
-import { Context, Effect, Schedule, Schema } from "effect";
+import { Context, Data, Effect, Schedule, Schema } from "effect";
 import { z } from "zod";
 import { defineRoute } from "../router/defineRoute";
+import { createLoader, withSchemaErrors } from "../router/loaderUtils";
 
-// Define User type
-type User = {
-  id: number;
-  name: string;
-  email: string;
-};
+export class UserFetchError extends Data.Error<{ message: string }> {}
+export class UserParseError extends Data.Error<{ message: string }> {}
 
-// Example 1: Simple route with Effect-based loader
+export class PostFetchError extends Data.Error<{ message: string }> {}
+export class PostParseError extends Data.Error<{ message: string }> {}
+
+// Example 1: SOLUTION - Using createLoader to automatically include ParseError
 const UserSchema = Schema.Struct({
   id: Schema.Number,
   name: Schema.String,
   email: Schema.String,
 });
+type User = typeof UserSchema.Type;
 
 const userRoute = defineRoute("/users/:id", {
   component: UserComponent,
@@ -23,19 +24,18 @@ const userRoute = defineRoute("/users/:id", {
     id: z.string().transform((val) => parseInt(val, 10)),
   }),
   loader: (params) =>
-    Effect.gen(function* () {
-      // Simulate API call with Effect
-      const user = yield* Effect.tryPromise({
+    // ✅ SOLUTION: createLoader automatically includes ParseError in the type
+    createLoader<User, UserFetchError>(
+      Effect.tryPromise({
         try: () => fetch(`/api/users/${params.id}`).then((res) => res.json()),
-        catch: (error) => new Error(`Failed to fetch user: ${error}`),
-      });
-
-      // Validate the response with Schema
-      return yield* Schema.decodeUnknown(UserSchema)(user);
-    }),
+        catch: (error) =>
+          new UserFetchError({ message: `Failed to fetch user: ${error}` }),
+      }),
+      UserSchema // This automatically includes ParseError in the return type
+    ),
 });
 
-// Example 2: Route with error handling using Effect
+// Example 2: SOLUTION - Manual error handling with proper typing
 const PostSchema = Schema.Struct({
   id: Schema.Number,
   title: Schema.String,
@@ -49,24 +49,35 @@ const postRoute = defineRoute("/posts/:id", {
   }),
   loader: (params) =>
     Effect.gen(function* () {
-      // Use Effect for error handling and retry logic
       const post = yield* Effect.retry(
         Effect.tryPromise({
           try: () => fetch(`/api/posts/${params.id}`).then((res) => res.json()),
-          catch: (error) => new Error(`Failed to fetch post: ${error}`),
+          catch: (error) =>
+            new PostFetchError({ message: `Failed to fetch post: ${error}` }),
         }),
         Schedule.exponential(1000)
       );
 
       return yield* Schema.decodeUnknown(PostSchema)(post);
-    }),
+    }).pipe(
+      // ✅ SOLUTION: Manually catch and transform ParseError and it'll no longer be included in the type. Instead, the returned type will be the declared errors.
+      Effect.catchTags({
+        ParseError: (error) => {
+          return new PostParseError({
+            message: `Failed to parse post: ${error}`,
+          });
+        },
+      })
+    ),
 });
 
-// Example 3: Route with dependencies using Effect Context
+// Example 3: SOLUTION - Using withSchemaErrors for service methods
 class UserService extends Context.Tag("UserService")<
   UserService,
   {
-    getUser: (id: number) => Effect.Effect<User, Error, never>;
+    getUser: (
+      id: number
+    ) => Effect.Effect<User, UserFetchError | UserParseError, never>;
   }
 >() {}
 
@@ -84,13 +95,17 @@ const userWithServiceRoute = defineRoute("/users/:id/profile", {
         UserService,
         UserService.of({
           getUser: (id) =>
-            Effect.gen(function* () {
-              const user = yield* Effect.tryPromise({
+            // ✅ SOLUTION: withSchemaErrors ensures ParseError is included in the type
+            withSchemaErrors(
+              Effect.tryPromise({
                 try: () => fetch(`/api/users/${id}`).then((res) => res.json()),
-                catch: (error) => new Error(`Failed to fetch user: ${error}`),
-              });
-              return yield* Schema.decodeUnknown(UserSchema)(user);
-            }),
+                catch: (error) =>
+                  new UserFetchError({
+                    message: `Failed to fetch user: ${error}`,
+                  }),
+              }),
+              UserSchema
+            ),
         })
       )
     ),
@@ -102,17 +117,15 @@ const layoutRoute = defineRoute("/", {
   layout: true,
   loader: () =>
     Effect.gen(function* () {
-      // Load layout data
       const config = yield* Effect.sync(() => ({
         title: "My App",
         theme: "dark",
       }));
-
       return config;
     }),
 });
 
-// Example components (these would be actual React components)
+// Example components
 function UserComponent() {
   const { data, state } = userRoute.useLoaderData();
 
@@ -130,7 +143,6 @@ function UserComponent() {
 
 function PostComponent() {
   const { data, state } = postRoute.useLoaderData();
-  // const params = postRoute.useParams();
 
   if (state === "loading") return <div>Loading...</div>;
   if (state === "error") return <div>Error loading post</div>;
@@ -162,7 +174,6 @@ function LayoutComponent() {
   const { data, state } = layoutRoute.useLoaderData();
 
   if (state === "loading") return <div>Loading layout...</div>;
-
   if (!data) return <div>Layout not found</div>;
   return (
     <div className={`theme-${data.theme}`}>

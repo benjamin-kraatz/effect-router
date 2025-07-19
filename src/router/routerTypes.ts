@@ -18,12 +18,27 @@ export type LoaderResult<Loader> =
       error: Error;
     };
 
-export type LoaderError = YieldableError ;
+export type LoaderError = YieldableError;
 
 export type LoaderEffect<Loader, E extends LoaderError> = Effect.Effect<
   Loader,
-  E,
+  E | never,
   never
 >;
 
 export type LoaderExit<Loader, E extends LoaderError> = Exit.Exit<Loader, E>;
+
+// Utility type to extract all possible errors from an Effect
+export type InferEffectErrors<T> = T extends Effect.Effect<unknown, infer E, unknown>
+  ? E
+  : never;
+
+// Utility type to ensure all errors are properly typed
+export type EnsureAllErrors<
+  EffectType,
+  DeclaredErrors extends LoaderError
+> = InferEffectErrors<EffectType> extends never
+  ? DeclaredErrors
+  : InferEffectErrors<EffectType> extends DeclaredErrors
+  ? DeclaredErrors
+  : InferEffectErrors<EffectType> | DeclaredErrors;

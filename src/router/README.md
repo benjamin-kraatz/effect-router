@@ -1,5 +1,8 @@
 # Effect Router Core
 
+> [!WARNING]
+> This README, especially the error handling section, is outdated. We're working on updating it as we iterate on the API. For a more up-to-date usage, see the the [example page](../pages/example.tsx).
+
 A React router built from the ground up with Effect, providing type-safe, composable, and resource-safe routing with advanced error handling.
 
 ## Core Features
@@ -9,6 +12,111 @@ A React router built from the ground up with Effect, providing type-safe, compos
 - **Advanced Error Handling**: Built-in retry logic, error recovery, and proper error types
 - **Resource Safety**: Automatic cleanup and resource management through Effect
 - **Composable**: Easy to compose complex routing logic using Effect's monadic operations
+
+## Error Handling Best Practices
+
+### The Problem: Missing Error Types
+
+When using Schema validation in loaders, the `ParseError` from Schema validation is not automatically included in the loader's error type. This creates a disconnect between what can happen at runtime and what's typed.
+
+```typescript
+// ❌ PROBLEMATIC: ParseError is not included in the type, but can occur at runtime
+const userRoute = defineRoute("/users/:id", {
+  component: UserComponent,
+  params: z.object({ id: z.string() }),
+  loader: (params) =>
+    Effect.gen(function* () {
+      const user = yield* Effect.tryPromise({
+        try: () => fetch(`/api/users/${params.id}`).then((res) => res.json()),
+        catch: (error) => new UserFetchError({ message: String(error) }),
+      });
+      // This can fail with ParseError, but it's not in the type!
+      return yield* Schema.decodeUnknown(UserSchema)(user);
+    }),
+});
+```
+
+### The Solution: Proper Error Type Handling
+
+#### Option 1: Use createLoader (Recommended)
+
+```typescript
+import { createLoader } from "./router/loaderUtils";
+
+const userRoute = defineRoute("/users/:id", {
+  component: UserComponent,
+  params: z.object({ id: z.string() }),
+  loader: (params) =>
+    createLoader(
+      Effect.tryPromise({
+        try: () => fetch(`/api/users/${params.id}`).then((res) => res.json()),
+        catch: (error) => new UserFetchError({ message: String(error) }),
+      }),
+      UserSchema // This automatically includes ParseError in the return type
+    ),
+});
+```
+
+#### Option 2: Manual Error Handling
+
+```typescript
+const userRoute = defineRoute("/users/:id", {
+  component: UserComponent,
+  params: z.object({ id: z.string() }),
+  loader: (params) =>
+    Effect.gen(function* () {
+      const user = yield* Effect.tryPromise({
+        try: () => fetch(`/api/users/${params.id}`).then((res) => res.json()),
+        catch: (error) => new UserFetchError({ message: String(error) }),
+      });
+      return yield* Schema.decodeUnknown(UserSchema)(user);
+    }).pipe(
+      Effect.catchTags({
+        ParseError: (error) => new UserParseError({ message: String(error) }),
+      })
+    ),
+});
+```
+
+#### Option 3: Use withSchemaErrors for Service Methods
+
+```typescript
+import { withSchemaErrors } from "./router/loaderUtils";
+
+class UserService extends Context.Tag("UserService")<
+  UserService,
+  {
+    getUser: (
+      id: number
+    ) => Effect.Effect<User, UserFetchError | UserParseError, never>;
+  }
+>() {}
+
+const userRoute = defineRoute("/users/:id", {
+  component: UserComponent,
+  params: z.object({ id: z.string() }),
+  loader: (params) =>
+    Effect.gen(function* () {
+      const userService = yield* UserService;
+      return yield* userService.getUser(params.id);
+    }).pipe(
+      Effect.provideService(
+        UserService,
+        UserService.of({
+          getUser: (id) =>
+            withSchemaErrors(
+              Effect.tryPromise({
+                try: () => fetch(`/api/users/${id}`).then((res) => res.json()),
+                catch: (error) =>
+                  new UserFetchError({ message: String(error) }),
+              }),
+              UserSchema
+            ),
+        })
+      )
+    ),
+});
+```
 
 ## Basic Usage
 
@@ -39,7 +147,7 @@ const userRoute = defineRoute("/users/:id", {
         try: () => fetch(`/api/users/${params.id}`).then((res) => res.json()),
         catch: (error) => new Error(`Failed to fetch user: ${error}`),
       });
-      
+
       // Validate response with Schema
       return yield* Schema.decodeUnknown(UserSchema)(user);
     }),
@@ -51,14 +159,14 @@ const userRoute = defineRoute("/users/:id", {
 ```typescript
 function UserComponent() {
   const { data, state } = userRoute.useLoaderData();
-  
+
   if (state === "loading") return <div>Loading...</div>;
   if (state === "error") return <div>Error loading user</div>;
-  
+
   return (
     <div>
-      <h1>{data.name}</h1>
-      <p>{data.email}</p>
+      <h1>{data?.name}</h1>
+      <p>{data?.email}</p>
     </div>
   );
 }
@@ -80,12 +188,9 @@ const postRoute = defineRoute("/posts/:id", {
           try: () => fetch(`/api/posts/${params.id}`).then((res) => res.json()),
           catch: (error) => new Error(`Failed to fetch post: ${error}`),
         }),
-        {
-          times: 3,
-          delay: 1000,
-        }
+        Schedule.exponential(1000)
       );
-      
+
       return yield* Schema.decodeUnknown(PostSchema)(post);
     }),
 });
@@ -130,7 +235,7 @@ const layoutRoute = defineRoute("/", {
         title: "My App",
         theme: "dark",
       }));
-      
+
       return config;
     }),
 });
@@ -139,19 +244,23 @@ const layoutRoute = defineRoute("/", {
 ## Effect Integration Points
 
 ### 1. Loader Functions
+
 - Return `Effect.Effect<Data, Error, never>` instead of `Promise<Data>`
 - Use `Effect.gen` for complex async operations
 - Leverage Effect's error handling and retry mechanisms
 
 ### 2. Route Parsing
+
 - Route parsing is wrapped in `Effect.sync` for consistency
 - Error handling through Effect's error channel
 
 ### 3. Navigation
+
 - Navigation operations use Effect for side effects
 - Proper error handling for navigation failures
 
 ### 4. Context Management
+
 - Router context uses Effect types for loader data
 - Proper typing for Effect-based operations
 
@@ -170,52 +279,60 @@ If you're migrating from Promise-based loaders:
 
 ```typescript
 // Before (Promise-based)
-loader: (params) => fetch(`/api/users/${params.id}`).then(res => res.json())
+loader: (params) => fetch(`/api/users/${params.id}`).then((res) => res.json());
 
 // After (Effect-based)
-loader: (params) => 
+loader: (params) =>
   Effect.tryPromise({
-    try: () => fetch(`/api/users/${params.id}`).then(res => res.json()),
+    try: () => fetch(`/api/users/${params.id}`).then((res) => res.json()),
     catch: (error) => new Error(`Failed to fetch user: ${error}`),
-  })
+  });
 ```
 
 ## Error Handling Patterns
 
 ### Retry Logic
+
 ```typescript
 loader: (params) =>
   Effect.retry(
     Effect.tryPromise({
-      try: () => fetch(`/api/users/${params.id}`).then(res => res.json()),
+      try: () => fetch(`/api/users/${params.id}`).then((res) => res.json()),
       catch: (error) => new Error(`Failed to fetch user: ${error}`),
     }),
     { times: 3, delay: 1000 }
-  )
+  );
 ```
 
 ### Timeout Handling
+
 ```typescript
 loader: (params) =>
   Effect.timeout(
     Effect.tryPromise({
-      try: () => fetch(`/api/users/${params.id}`).then(res => res.json()),
+      try: () => fetch(`/api/users/${params.id}`).then((res) => res.json()),
       catch: (error) => new Error(`Failed to fetch user: ${error}`),
     }),
     "5 seconds"
-  )
+  );
 ```
 
 ### Fallback Data
+
 ```typescript
 loader: (params) =>
   Effect.orElse(
     Effect.tryPromise({
-      try: () => fetch(`/api/users/${params.id}`).then(res => res.json()),
+      try: () => fetch(`/api/users/${params.id}`).then((res) => res.json()),
       catch: (error) => new Error(`Failed to fetch user: ${error}`),
     }),
-    () => Effect.succeed({ id: params.id, name: "Unknown User", email: "unknown@example.com" })
-  )
+    () =>
+      Effect.succeed({
+        id: params.id,
+        name: "Unknown User",
+        email: "unknown@example.com",
+      })
+  );
 ```
 
-This router demonstrates how Effect can be used throughout a React application to provide better error handling, resource management, and type safety. 
+This router demonstrates how Effect can be used throughout a React application to provide better error handling, resource management, and type safety.

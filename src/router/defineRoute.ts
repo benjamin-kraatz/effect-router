@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Effect } from "effect";
 import {
   DynamicRoute,
   isDynamicRoute,
@@ -24,6 +25,14 @@ type ValidateParams<
     ? Schema
     : never // Missing required keys
   : never; // Contains extra keys
+
+// Helper type to ensure all errors from an Effect are included in the loader error type
+export type WithAllErrors<
+  T extends Effect.Effect<unknown, unknown, unknown>,
+  DeclaredErrors extends LoaderError
+> = T extends Effect.Effect<infer A, infer E, infer R>
+  ? Effect.Effect<A, E | DeclaredErrors, R>
+  : never;
 
 export function defineRoute<
   const Path extends string,
