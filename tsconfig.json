@@ -1,4 +1,7 @@
 {
+  "compilerOptions": {
+    "typeRoots": ["./node_modules/@types", "./src/router/effect-router.d.ts"]
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
