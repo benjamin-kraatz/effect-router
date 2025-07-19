@@ -1,3 +1,5 @@
+import { Effect, Exit } from "effect";
+
 export type LoaderResult<Loader> =
   | {
       data: Loader;
@@ -13,4 +15,8 @@ export type LoaderResult<Loader> =
       data?: never;
       state: "error";
       error: Error;
-    }; 
+    };
+
+export type LoaderEffect<Loader> = Effect.Effect<Loader, unknown, never>;
+
+export type LoaderExit<Loader> = Exit.Exit<Loader, unknown>; 

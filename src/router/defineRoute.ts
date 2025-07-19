@@ -6,7 +6,8 @@ import {
   RouteWithParams,
 } from "./types";
 import { useLoaderContext } from "./outletHooks";
-import { LoaderResult, useRouterContext } from "./routerHooks";
+import { LoaderResult } from "./routerTypes";
+import { useRouterContext } from "./routerHooks";
 
 type ExtractAllParamKeys<Path> =
   Path extends `${string}/:${infer Param}/${infer Rest}`
@@ -49,7 +50,7 @@ export function defineRoute<
       if (isDynamicRoute(route)) {
         return route.params.parse(rawParams);
       } else {
-        return {};
+        return {} as z.infer<Params>;
       }
     },
   };

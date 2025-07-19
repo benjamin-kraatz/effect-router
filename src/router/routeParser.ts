@@ -1,35 +1,38 @@
+import { Effect } from "effect";
 import type { RegisteredRoutes } from "./types";
 
 export function routeParser(routes: readonly RegisteredRoutes[], url: string) {
-  const layoutRoutes = routes.filter((route) => route.layout);
-  const contentRoutes = routes.filter((route) => !route.layout);
+  return Effect.sync(() => {
+    const layoutRoutes = routes.filter((route) => route.layout);
+    const contentRoutes = routes.filter((route) => !route.layout);
 
-  const matchedRoute = contentRoutes.find((route) =>
-    isRouteMatch(url, route.path)
-  );
+    const matchedRoute = contentRoutes.find((route) =>
+      isRouteMatch(url, route.path)
+    );
 
-  if (matchedRoute == null) {
-    return { routes: [], params: {} };
-  }
+    if (matchedRoute == null) {
+      return { routes: [], params: {} };
+    }
 
-  const matchingLayouts = layoutRoutes
-    .filter((route) => {
-      const normalizedUrl = normalizeUrl(url).split("/");
-      while (normalizedUrl.length > 0) {
-        if (isRouteMatch(normalizedUrl.join("/"), route.path)) {
-          return true;
+    const matchingLayouts = layoutRoutes
+      .filter((route) => {
+        const normalizedUrl = normalizeUrl(url).split("/");
+        while (normalizedUrl.length > 0) {
+          if (isRouteMatch(normalizedUrl.join("/"), route.path)) {
+            return true;
+          }
+          normalizedUrl.pop();
         }
-        normalizedUrl.pop();
-      }
-    })
-    .sort((a, b) => {
-      return a.path.split("/").length - b.path.split("/").length;
-    });
+      })
+      .sort((a, b) => {
+        return a.path.split("/").length - b.path.split("/").length;
+      });
 
-  return {
-    routes: [...matchingLayouts, matchedRoute],
-    params: getParamsFromRoute(url, matchedRoute.path),
-  };
+    return {
+      routes: [...matchingLayouts, matchedRoute],
+      params: getParamsFromRoute(url, matchedRoute.path),
+    };
+  });
 }
 
 function isRouteMatch(url: string, routeUrl: string) {

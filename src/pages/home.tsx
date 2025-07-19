@@ -1,13 +1,16 @@
+import { Effect } from "effect";
 import { defineRoute } from "../router/defineRoute";
 import { useRouterContext } from "../router/routerHooks";
 
 export const homeRoute = defineRoute("/", {
   component: HomePage,
-  loader: async () => {
-    return new Promise<{ hi: string }>((resolve) => {
-      setTimeout(() => {
-        resolve({ hi: "hello" });
-      }, 1000);
+  loader: () => {
+    return Effect.promise(async () => {
+      return new Promise<{ hi: string }>((resolve) => {
+        setTimeout(() => {
+          resolve({ hi: "hello" });
+        }, 1000);
+      });
     });
   },
 });

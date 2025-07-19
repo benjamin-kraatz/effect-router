@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Effect } from "effect";
 import { Outlet, OutletWrapper } from "./Outlet";
 import { routeParser } from "./routeParser";
 import { LoaderResult } from "./routerTypes";
@@ -22,14 +23,17 @@ export function RouterProvider({
 
   const handleRouteChange = useCallback(() => {
     const currentUrl = window.location.pathname;
-    const { routes: matchedRoutes, params } = routeParser(routes, currentUrl);
-    setMatchedRoutes(matchedRoutes);
-    setRawParams(params);
-    setLoaderData(
-      matchedRoutes.map((route) => ({
-        state: route.loader ? "no-loader" : "loading",
-      }))
-    );
+    const parseResult = routeParser(routes, currentUrl);
+    
+    Effect.runPromise(parseResult).then(({ routes: matchedRoutes, params }) => {
+      setMatchedRoutes(matchedRoutes);
+      setRawParams(params);
+      setLoaderData(
+        matchedRoutes.map((route) => ({
+          state: route.loader ? "no-loader" : "loading",
+        }))
+      );
+    });
   }, [routes]);
 
   useEffect(() => {
@@ -42,31 +46,30 @@ export function RouterProvider({
           };
           return newData;
         });
-        const loader = isDynamicRoute(route)
+
+        const loaderEffect = isDynamicRoute(route)
           ? route.loader(route.params.parse(rawParams))
           : route.loader();
 
-        loader
-          .then((res) => {
-            setLoaderData((data) => {
-              const newData = [...data];
-              newData[index] = {
-                data: res,
-                state: "loaded",
-              };
-              return newData;
-            });
-          })
-          .catch((error) => {
-            setLoaderData((data) => {
-              const newData = [...data];
-              newData[index] = {
-                state: "error",
-                error,
-              };
-              return newData;
-            });
+        Effect.runPromise(loaderEffect).then((result) => {
+          setLoaderData((data) => {
+            const newData = [...data];
+            newData[index] = {
+              data: result,
+              state: "loaded",
+            };
+            return newData;
           });
+        }).catch((error) => {
+          setLoaderData((data) => {
+            const newData = [...data];
+            newData[index] = {
+              state: "error",
+              error,
+            };
+            return newData;
+          });
+        });
       }
     });
   }, [matchedRoutes, rawParams]);

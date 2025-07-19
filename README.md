@@ -22,3 +22,8 @@ By integrating TanStack Router's advanced routing capabilities with Effect's ext
 This combination empowers developers to create super powerful, maintainable, and reliable routers for React apps, leveraging the strengths of both libraries for a best-in-class developer experience.
 
 Effect Router is built from scratch to provide a deep integration with both technologies, ensuring a robust library that meets the needs of modern React applications.
+
+## Getting Started
+
+> [!NOTE]
+> See more in the [Effect Router Core](./src/router/README.md) for the core features and usage examples.

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { z } from "zod";
+import { Effect } from "effect";
 
 export type Route<
   Path extends string,
@@ -10,7 +11,7 @@ export type Route<
   component?: ReactNode;
   params?: P;
   loader?: P extends z.AnyZodObject
-    ? (params: z.infer<P>) => Promise<R>
+    ? (params: z.infer<P>) => Effect.Effect<R, unknown, never>
     : undefined;
 };
 

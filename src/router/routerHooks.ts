@@ -5,23 +5,7 @@ import {
   ParamsForPath,
   RegisteredRoutes,
 } from "./types";
-
-export type LoaderResult<Loader> =
-  | {
-      data: Loader;
-      state: "loaded";
-      error?: never;
-    }
-  | {
-      data?: never;
-      state: "loading" | "no-loader";
-      error?: Error;
-    }
-  | {
-      data?: never;
-      state: "error";
-      error: Error;
-    };
+import { LoaderResult } from "./routerTypes";
 
 export const RouterContext = createContext<{
   matchedRoutes: RegisteredRoutes[];
@@ -33,7 +17,7 @@ export const RouterContext = createContext<{
     ? { params: ParamsForPath<Path> }
     : { params?: never })): void;
   rawParams: Record<string, string>;
-  loaderData: unknown[];
+  loaderData: LoaderResult<unknown>[];
 }>({
   loaderData: [],
   matchedRoutes: [],

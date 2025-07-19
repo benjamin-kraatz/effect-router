@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { z } from "zod";
+import { Effect } from "effect";
 import type { Register } from "./effect-router";
 
 export type RegisteredRoutes = Register extends { routes: infer R }
@@ -19,7 +20,7 @@ export type RouteWithParams<
 > = BaseRoute<Layout> & {
   path: DynamicRoute;
   params: Params;
-  loader?: (params: z.infer<Params>) => Promise<Loader>;
+  loader?: (params: z.infer<Params>) => Effect.Effect<Loader, unknown, never>;
 };
 
 export type RouteWithNoParams<
@@ -27,7 +28,7 @@ export type RouteWithNoParams<
   Layout extends boolean = false
 > = BaseRoute<Layout> & {
   path: string;
-  loader?: () => Promise<Loader>;
+  loader?: () => Effect.Effect<Loader, unknown, never>;
 };
 
 export type ParamsForPath<Path extends RegisteredRoutes["path"]> =
