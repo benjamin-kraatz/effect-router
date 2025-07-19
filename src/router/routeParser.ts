@@ -46,7 +46,7 @@ function isRouteMatch(url: string, routeUrl: string) {
 
 function normalizeUrl(url: string) {
   if (url === "" || url === "/") return "";
-  return `/${url.replace(/^\/+|\/+$/g, "")}`;
+  return url.replace(/^\/+|\/+$/g, "");
 }
 
 function getParamsFromRoute(url: string, routeUrl: string) {

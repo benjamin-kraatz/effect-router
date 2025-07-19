@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Outlet, OutletWrapper } from "./Outlet";
 import { routeParser } from "./routeParser";
 import { LoaderResult } from "./routerTypes";
@@ -9,25 +9,7 @@ import {
   ParamsForPath,
   RegisteredRoutes,
 } from "./types";
-
-const RouterContext = createContext<{
-  matchedRoutes: RegisteredRoutes[];
-  goToUrl: (url: string) => void;
-  navigate<Path extends NavigableRoutes["path"]>({
-    url,
-    params,
-  }: { url: Path } & (Path extends DynamicRoute
-    ? { params: ParamsForPath<Path> }
-    : { params?: never })): void;
-  rawParams: Record<string, string>;
-  loaderData: unknown[];
-}>({
-  loaderData: [],
-  matchedRoutes: [],
-  navigate: () => {},
-  goToUrl: () => {},
-  rawParams: {},
-});
+import { RouterContext } from "./routerHooks";
 
 export function RouterProvider({
   routes,

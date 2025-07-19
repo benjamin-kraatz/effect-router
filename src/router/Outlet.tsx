@@ -5,6 +5,7 @@ import { useOutletContext, OutletContext, LoaderContext } from "./outletHooks";
 export function Outlet() {
   const { matchedRoutes } = useRouterContext();
   const { depth } = useOutletContext();
+  
   if (depth >= matchedRoutes.length) return null;
 
   const route = matchedRoutes.at(depth);
