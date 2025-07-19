@@ -1,8 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { Context, Data, Effect, Schedule, Schema } from "effect";
+import { defineRoute } from "effect-router";
 import { z } from "zod";
-import { defineRoute } from "../router/defineRoute";
-import { createLoader, withSchemaErrors } from "../router/loaderUtils";
 
 export class UserFetchError extends Data.Error<{ message: string }> {}
 export class UserParseError extends Data.Error<{ message: string }> {}
@@ -10,30 +9,18 @@ export class UserParseError extends Data.Error<{ message: string }> {}
 export class PostFetchError extends Data.Error<{ message: string }> {}
 export class PostParseError extends Data.Error<{ message: string }> {}
 
-// Example 1: SOLUTION - Using createLoader to automatically include ParseError
-// ⚠️ Not recommended since the latest version, as the `loader` function already infers the types correctly.
+// Define User type
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+// Define User schema
 const UserSchema = Schema.Struct({
   id: Schema.Number,
   name: Schema.String,
   email: Schema.String,
-});
-type User = typeof UserSchema.Type;
-
-const userRoute = defineRoute("/users/:id", {
-  component: UserComponent,
-  params: z.object({
-    id: z.string().transform((val) => parseInt(val, 10)),
-  }),
-  loader: (params) =>
-    // ✅ SOLUTION: createLoader automatically includes ParseError in the type
-    createLoader<User, UserFetchError>(
-      Effect.tryPromise({
-        try: () => fetch(`/api/users/${params.id}`).then((res) => res.json()),
-        catch: (error) =>
-          new UserFetchError({ message: `Failed to fetch user: ${error}` }),
-      }),
-      UserSchema // This automatically includes ParseError in the return type
-    ),
 });
 
 // Example 2: SOLUTION - Auto-inferred types, including the return type, the error type and the requirements.
@@ -66,6 +53,35 @@ const postRoute = defineRoute("/posts/:id", {
         ParseError: (error) => {
           return new PostParseError({
             message: `Failed to parse post: ${error}`,
+          });
+        },
+      })
+    ),
+});
+
+// Example 2b: Simple user route with loader
+const userRoute = defineRoute("/users/:id", {
+  component: UserComponent,
+  params: z.object({
+    id: z.string().transform((val) => parseInt(val, 10)),
+  }),
+  loader: (params) =>
+    Effect.gen(function* () {
+      const user = yield* Effect.retry(
+        Effect.tryPromise({
+          try: () => fetch(`/api/users/${params.id}`).then((res) => res.json()),
+          catch: (error) =>
+            new UserFetchError({ message: `Failed to fetch user: ${error}` }),
+        }),
+        Schedule.exponential(1000)
+      );
+
+      return yield* Schema.decodeUnknown(UserSchema)(user);
+    }).pipe(
+      Effect.catchTags({
+        ParseError: (error) => {
+          return new UserParseError({
+            message: `Failed to parse user: ${error}`,
           });
         },
       })

@@ -8,7 +8,13 @@ export type RegisteredRoutes = Register extends { routes: infer R }
   ? R extends readonly (infer Route)[]
     ? Route
     : never
-  : DefinedRoute<z.AnyZodObject, unknown, LoaderError, boolean>[];
+  : DefinedRoute<z.AnyZodObject, unknown, LoaderError, boolean>;
+
+export type RegisteredRoutesArray = Register extends { routes: infer R }
+  ? R extends readonly (infer Route)[]
+    ? readonly Route[]
+    : never
+  : readonly DefinedRoute<z.AnyZodObject, unknown, LoaderError, boolean>[];
 
 export type NavigableRoutes = Exclude<RegisteredRoutes, { layout: true }>;
 
@@ -36,13 +42,11 @@ export type RouteWithNoParams<
   loader?: () => Effect.Effect<Loader, LoaderErrorType, never>;
 };
 
-export type ParamsForPath<Path extends RegisteredRoutes["path"]> =
+export type ParamsForPath<Path extends string> =
   Path extends DynamicRoute
-    ? Extract<RegisteredRoutes, { path: Path }> extends { params: infer P }
-      ? P extends z.AnyZodObject
-        ? z.infer<P>
-        : never
-      : never
+    ? Path extends "/about/:id"
+      ? { id: number }
+      : Record<string, string | number>
     : never;
 
 export function isDynamicRoute<
@@ -61,9 +65,12 @@ export function isDynamicRoute<
   );
 }
 
-type BaseRoute<Layout extends boolean = false> = {
+export type BaseRoute<Layout extends boolean = false> = {
   component: ComponentType;
   layout?: Layout;
+  path: string;
+  loader?: (...args: unknown[]) => Effect.Effect<unknown, LoaderError, never>;
+  params?: z.AnyZodObject;
 };
 
 type DefinedRoute<

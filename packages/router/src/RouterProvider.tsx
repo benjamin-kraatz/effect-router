@@ -4,29 +4,28 @@ import { Outlet, OutletWrapper } from "./Outlet";
 import { routeParser } from "./routeParser";
 import { LoaderResult } from "./routerTypes";
 import {
+  BaseRoute,
   DynamicRoute,
   isDynamicRoute,
-  NavigableRoutes,
   ParamsForPath,
-  RegisteredRoutes,
 } from "./types";
 import { RouterContext } from "./routerHooks";
 
-export function RouterProvider({
+export function RouterProvider<T extends readonly BaseRoute[]>({
   routes,
 }: {
-  routes: readonly RegisteredRoutes[];
+  routes: T;
 }) {
-  const [matchedRoutes, setMatchedRoutes] = useState<RegisteredRoutes[]>([]);
+  const [matchedRoutes, setMatchedRoutes] = useState<T[number][]>([]);
   const [rawParams, setRawParams] = useState<Record<string, string>>({});
   const [loaderData, setLoaderData] = useState<LoaderResult<unknown>[]>([]);
 
   const handleRouteChange = useCallback(() => {
     const currentUrl = window.location.pathname;
     const parseResult = routeParser(routes, currentUrl);
-    
+
     Effect.runPromise(parseResult).then(({ routes: matchedRoutes, params }) => {
-      setMatchedRoutes(matchedRoutes);
+      setMatchedRoutes(matchedRoutes as T[number][]);
       setRawParams(params);
       setLoaderData(
         matchedRoutes.map((route) => ({
@@ -51,25 +50,27 @@ export function RouterProvider({
           ? route.loader(route.params.parse(rawParams))
           : route.loader();
 
-        Effect.runPromise(loaderEffect).then((result) => {
-          setLoaderData((data) => {
-            const newData = [...data];
-            newData[index] = {
-              data: result,
-              state: "loaded",
-            };
-            return newData;
+        Effect.runPromise(loaderEffect)
+          .then((result) => {
+            setLoaderData((data) => {
+              const newData = [...data];
+              newData[index] = {
+                data: result,
+                state: "loaded",
+              };
+              return newData;
+            });
+          })
+          .catch((error) => {
+            setLoaderData((data) => {
+              const newData = [...data];
+              newData[index] = {
+                state: "error",
+                error,
+              };
+              return newData;
+            });
           });
-        }).catch((error) => {
-          setLoaderData((data) => {
-            const newData = [...data];
-            newData[index] = {
-              state: "error",
-              error,
-            };
-            return newData;
-          });
-        });
       }
     });
   }, [matchedRoutes, rawParams]);
@@ -92,7 +93,7 @@ export function RouterProvider({
     handleRouteChange();
   }
 
-  function navigate<Path extends NavigableRoutes["path"]>({
+  function navigate<Path extends string>({
     url,
     params,
   }: { url: Path } & (Path extends DynamicRoute
@@ -114,10 +115,6 @@ export function RouterProvider({
       value={{ matchedRoutes, navigate, goToUrl, rawParams, loaderData }}
     >
       <OutletWrapper depth={-1}>
-        <div className="absolute flex flex-col items-center justify-center top-2 right-2 text-xs px-2 py-1 rounded-lg bg-red-800 font-bold hover:opacity-10 transition-opacity select-none cursor-default">
-          <span className="text-center text-sm">&alpha; Early Alpha</span>
-          <span className="text-center tracking-tighter">Effect Router</span>
-        </div>
         <Outlet />
       </OutletWrapper>
     </RouterContext>

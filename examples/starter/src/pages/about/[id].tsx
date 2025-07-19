@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { defineRoute } from "../../router/defineRoute";
+import { defineRoute } from "effect-router";
 
 export const aboutRoute = defineRoute("/about/:id", {
   component: AboutPage,

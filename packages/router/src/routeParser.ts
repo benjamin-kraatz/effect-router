@@ -1,7 +1,7 @@
 import { Effect } from "effect";
-import type { RegisteredRoutes } from "./types";
+import type { BaseRoute } from "./types";
 
-export function routeParser(routes: readonly RegisteredRoutes[], url: string) {
+export function routeParser(routes: readonly BaseRoute[], url: string) {
   return Effect.sync(() => {
     const layoutRoutes = routes.filter((route) => route.layout);
     const contentRoutes = routes.filter((route) => !route.layout);

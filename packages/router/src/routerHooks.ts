@@ -1,16 +1,15 @@
 import { createContext, useContext } from "react";
 import {
+  BaseRoute,
   DynamicRoute,
-  NavigableRoutes,
   ParamsForPath,
-  RegisteredRoutes,
 } from "./types";
 import { LoaderResult } from "./routerTypes";
 
 export const RouterContext = createContext<{
-  matchedRoutes: RegisteredRoutes[];
+  matchedRoutes: BaseRoute[];
   goToUrl: (url: string) => void;
-  navigate<Path extends NavigableRoutes["path"]>({
+  navigate<Path extends string>({
     url,
     params,
   }: { url: Path } & (Path extends DynamicRoute
