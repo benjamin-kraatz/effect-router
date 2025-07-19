@@ -1,5 +1,5 @@
-import { Effect, Data } from "effect";
-import { defineRoute, useRouterContext, LoaderEffect } from "effect-router";
+import { Data, Effect } from "effect";
+import { defineRoute, useRouterContext } from "effect-router";
 
 export class TaggedError extends Data.TaggedError("TaggedError")<{
   message: string;
@@ -8,7 +8,7 @@ export class SimpleError extends Data.Error<{ message: string }> {}
 
 export const homeRoute = defineRoute("/", {
   component: HomePage,
-  loader: (): LoaderEffect<{ hi: string }, TaggedError> => {
+  loader: () => {
     return Effect.tryPromise({
       try: async () => {
         // randomly fail
@@ -32,22 +32,6 @@ export const homeRoute = defineRoute("/", {
 function HomePage() {
   const { data, state } = homeRoute.useLoaderData();
   const { navigate } = useRouterContext();
-
-  // Test type safety - these should show autocomplete for valid routes
-  const testNavigate = () => {
-    // This should work
-    navigate({ url: "/about/:id", params: { id: 1 } });
-
-    // This should also work (no params route)
-    navigate({ url: "/" });
-    
-    // This should NOT work (route does not exist)
-    navigate({ url: "/any-arbitrary-invalid-route" });
-
-    // Now let's test with a route that doesn't match the expected pattern
-    // navigate({ url: "/about/:id", params: { wrongParam: 1 } }); // This should error because wrongParam doesn't match the expected id
-    // navigate({ url: "/about/:id" }); // This should error because params are missing
-  };
 
   return (
     <>

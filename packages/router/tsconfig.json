@@ -18,7 +18,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
-    "typeRoots": ["./node_modules/@types", "./src/router/effect-router.d.ts"],
     "plugins": [
       {
         "name": "@effect/language-service"

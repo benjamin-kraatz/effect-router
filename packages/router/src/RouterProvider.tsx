@@ -8,6 +8,7 @@ import {
   DynamicRoute,
   isDynamicRoute,
   ParamsForPath,
+  RoutePath,
 } from "./types";
 import { RouterContext } from "./routerHooks";
 
@@ -93,22 +94,25 @@ export function RouterProvider<T extends readonly BaseRoute[]>({
     handleRouteChange();
   }
 
-  function navigate<Path extends string>({
-    url,
-    params,
-  }: Path extends DynamicRoute
-    ? { url: Path; params: ParamsForPath<Path> }
-    : { url: Path; params?: never }) {
-    const parsedUrl =
-      params == null
-        ? url
-        : Object.entries(params).reduce((acc, [key, value]) => {
-            return acc.replace(`:${key}`, value.toString());
-          }, url as string);
+  const navigate = useCallback(
+    <Path extends RoutePath>(
+      options: { url: Path } & (Path extends DynamicRoute
+        ? { params: ParamsForPath<Path> }
+        : { params?: undefined })
+    ): void => {
+      const { url, params } = options;
+      const parsedUrl =
+        params == null
+          ? url
+          : Object.entries(params).reduce((acc, [key, value]) => {
+              return acc.replace(`:${key}`, value.toString());
+            }, url as string);
 
-    window.history.pushState({}, "", parsedUrl);
-    handleRouteChange();
-  }
+      window.history.pushState({}, "", parsedUrl);
+      handleRouteChange();
+    },
+    [handleRouteChange]
+  );
 
   return (
     <RouterContext

@@ -20,12 +20,6 @@ export type LoaderResult<Loader> =
 
 export type LoaderError = YieldableError;
 
-export type LoaderEffect<Loader, E extends LoaderError> = Effect.Effect<
-  Loader,
-  E | never,
-  never
->;
-
 export type LoaderExit<Loader, E extends LoaderError> = Exit.Exit<Loader, E>;
 
 // Utility type to extract all possible errors from an Effect
