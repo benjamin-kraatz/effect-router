@@ -5,9 +5,9 @@ import { routeParser } from "./routeParser";
 import { LoaderResult } from "./routerTypes";
 import {
   BaseRoute,
-  DynamicRoute,
   isDynamicRoute,
-  ParamsForPath,
+  KnownRoutes,
+  TypedNavigateOptions,
 } from "./types";
 import { RouterContext } from "./routerHooks";
 
@@ -93,12 +93,8 @@ export function RouterProvider<T extends readonly BaseRoute[]>({
     handleRouteChange();
   }
 
-  function navigate<Path extends string>({
-    url,
-    params,
-  }: Path extends DynamicRoute
-    ? { url: Path; params: ParamsForPath<Path> }
-    : { url: Path; params?: never }) {
+  function navigate<Path extends KnownRoutes>(options: TypedNavigateOptions<Path>) {
+    const { url, params } = options;
     const parsedUrl =
       params == null
         ? url

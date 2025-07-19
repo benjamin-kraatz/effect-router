@@ -20,6 +20,64 @@ export type NavigableRoutes = Exclude<RegisteredRoutes, { layout: true }>;
 
 export type DynamicRoute = `${string}/:${string}`;
 
+// Extract path from a route
+export type RoutePath<T> = T extends { path: infer P } ? P : never;
+
+// Extract all valid paths from registered routes
+export type ValidPaths = RoutePath<RegisteredRoutes>;
+
+// Extract parameters from a route
+export type RouteParams<T> = T extends { params: infer P } ? P : never;
+
+// Create a more explicit type map for route parameters
+export type RouteParamsMap = {
+  [K in ValidPaths]: K extends DynamicRoute
+    ? RouteParams<Extract<RegisteredRoutes, { path: K }>>
+    : never;
+};
+
+// Get parameters for a specific path
+export type ParamsForPath<Path extends ValidPaths> = RouteParamsMap[Path];
+
+// Type-safe navigation options
+export type NavigateOptions<Path extends ValidPaths> = Path extends DynamicRoute
+  ? { url: Path; params: ParamsForPath<Path> }
+  : { url: Path; params?: never };
+
+// Type-safe link props
+export type LinkProps<Path extends ValidPaths> = Path extends DynamicRoute
+  ? { href: Path; params: ParamsForPath<Path> }
+  : { href: Path; params?: never };
+
+// Helper type to check if a path is valid
+export type IsValidPath<Path extends string> = Path extends ValidPaths ? true : false;
+
+// Helper type to check if a path requires parameters
+export type RequiresParams<Path extends ValidPaths> = Path extends DynamicRoute ? true : false;
+
+// Explicit route definitions for better type safety
+export type KnownRoutes = "/" | "/about/:id";
+
+// Explicit parameter definitions
+export type RouteParameters = {
+  "/": never;
+  "/about/:id": { id: number };
+};
+
+// Type-safe navigation with explicit route mapping
+export type TypedNavigateOptions<Path extends KnownRoutes> = Path extends keyof RouteParameters
+  ? RouteParameters[Path] extends never
+    ? { url: Path; params?: never }
+    : { url: Path; params: RouteParameters[Path] }
+  : never;
+
+// Type-safe link props with explicit route mapping
+export type TypedLinkProps<Path extends KnownRoutes> = Path extends keyof RouteParameters
+  ? RouteParameters[Path] extends never
+    ? { href: Path; params?: never }
+    : { href: Path; params: RouteParameters[Path] }
+  : never;
+
 export type RouteWithParams<
   Params extends z.AnyZodObject,
   Loader,
@@ -41,13 +99,6 @@ export type RouteWithNoParams<
   path: string;
   loader?: () => Effect.Effect<Loader, LoaderErrorType, never>;
 };
-
-export type ParamsForPath<Path extends string> =
-  Path extends DynamicRoute
-    ? Path extends "/about/:id"
-      ? { id: number }
-      : Record<string, string | number>
-    : never;
 
 export function isDynamicRoute<
   Params extends z.AnyZodObject,

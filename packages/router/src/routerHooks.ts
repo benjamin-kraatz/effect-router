@@ -1,20 +1,15 @@
 import { createContext, useContext } from "react";
 import {
   BaseRoute,
-  DynamicRoute,
-  ParamsForPath,
+  KnownRoutes,
+  TypedNavigateOptions,
 } from "./types";
 import { LoaderResult } from "./routerTypes";
 
 export const RouterContext = createContext<{
   matchedRoutes: BaseRoute[];
   goToUrl: (url: string) => void;
-  navigate<Path extends string>({
-    url,
-    params,
-  }: { url: Path } & (Path extends DynamicRoute
-    ? { params: ParamsForPath<Path> }
-    : { params?: never })): void;
+  navigate<Path extends KnownRoutes>(options: TypedNavigateOptions<Path>): void;
   rawParams: Record<string, string>;
   loaderData: LoaderResult<unknown>[];
 }>({

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "typeRoots": ["./node_modules/@types", "./src/router/effect-router.d.ts"],
+    "typeRoots": ["./node_modules/@types"],
     "plugins": [
       {
         "name": "@effect/language-service"

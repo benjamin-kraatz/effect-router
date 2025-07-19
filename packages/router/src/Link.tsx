@@ -1,17 +1,13 @@
 import { ComponentProps, MouseEvent } from "react";
 import { useRouterContext } from "./routerHooks";
-import { DynamicRoute, NavigableRoutes, ParamsForPath } from "./types";
+import { KnownRoutes, TypedLinkProps } from "./types";
 
-export function Link<Path extends NavigableRoutes["path"]>({
+export function Link<Path extends KnownRoutes>({
   onClick,
   href,
   params,
   ...props
-}: Omit<ComponentProps<"a">, "href"> & {
-  href: Path;
-} & (Path extends DynamicRoute
-    ? { params: ParamsForPath<Path> }
-    : { params?: never })) {
+}: Omit<ComponentProps<"a">, "href"> & TypedLinkProps<Path>) {
   const url =
     params == null
       ? href
