@@ -24,6 +24,3 @@ This combination empowers developers to create super powerful, maintainable, and
 Effect Router is built from scratch to provide a deep integration with both technologies, ensuring a robust library that meets the needs of modern React applications.
 
 ## Getting Started
-
-> [!NOTE]
-> See more in the [Effect Router Core](./src/router/README.md) for the core features and usage examples.
