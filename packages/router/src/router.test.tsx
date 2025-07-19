@@ -62,6 +62,28 @@ const TestRouter: React.FC<{ initialUrl: string }> = ({ initialUrl }) => {
   return <RouterProvider routes={routes} />;
 };
 
+// This component is not rendered, but it is used to check type safety at compile time.
+export function TypeSafetyChecks() {
+  const { navigate } = useRouterContext();
+
+  // Valid navigation
+  navigate({ url: "/" });
+  navigate({ url: "/about/:id", params: { id: 123 } });
+
+  // @ts-expect-error - Invalid route
+  navigate({ url: "/non-existent-route" });
+
+  // @ts-expect-error - Missing params
+  navigate({ url: "/about/:id" });
+
+  // @ts-expect-error - Incorrect param name
+  navigate({ url: "/about/:id", params: { wrongParam: 123 } });
+
+  // @ts-expect-error - Extra params
+  navigate({ url: "/", params: { extra: 123 } });
+}
+
+
 describe("RouterProvider", () => {
   it("should render the home route and the navigation component", async () => {
     await act(async () => render(<TestRouter initialUrl="/" />));
