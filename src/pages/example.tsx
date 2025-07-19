@@ -11,6 +11,7 @@ export class PostFetchError extends Data.Error<{ message: string }> {}
 export class PostParseError extends Data.Error<{ message: string }> {}
 
 // Example 1: SOLUTION - Using createLoader to automatically include ParseError
+// ⚠️ Not recommended since the latest version, as the `loader` function already infers the types correctly.
 const UserSchema = Schema.Struct({
   id: Schema.Number,
   name: Schema.String,
@@ -35,7 +36,7 @@ const userRoute = defineRoute("/users/:id", {
     ),
 });
 
-// Example 2: SOLUTION - Manual error handling with proper typing
+// Example 2: SOLUTION - Auto-inferred types, including the return type, the error type and the requirements.
 const PostSchema = Schema.Struct({
   id: Schema.Number,
   title: Schema.String,
@@ -71,7 +72,7 @@ const postRoute = defineRoute("/posts/:id", {
     ),
 });
 
-// Example 3: SOLUTION - Using withSchemaErrors for service methods
+// Example 3: A loader effect HAS to be provided with all requirements. This is subject to change in future versions (custom runtime in context, etc.)
 class UserService extends Context.Tag("UserService")<
   UserService,
   {
@@ -86,29 +87,12 @@ const userWithServiceRoute = defineRoute("/users/:id/profile", {
   params: z.object({
     id: z.string().transform((val) => parseInt(val, 10)),
   }),
+  // @ts-expect-error - This is intentional to show that the loader effect must have been provided with all requirements.
   loader: (params) =>
     Effect.gen(function* () {
       const userService = yield* UserService;
       return yield* userService.getUser(params.id);
-    }).pipe(
-      Effect.provideService(
-        UserService,
-        UserService.of({
-          getUser: (id) =>
-            // ✅ SOLUTION: withSchemaErrors ensures ParseError is included in the type
-            withSchemaErrors(
-              Effect.tryPromise({
-                try: () => fetch(`/api/users/${id}`).then((res) => res.json()),
-                catch: (error) =>
-                  new UserFetchError({
-                    message: `Failed to fetch user: ${error}`,
-                  }),
-              }),
-              UserSchema
-            ),
-        })
-      )
-    ),
+    }),
 });
 
 // Example 4: Layout route with Effect-based loader
