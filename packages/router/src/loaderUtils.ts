@@ -49,23 +49,23 @@ export function withSchemaErrors<TIn, DeclaredErrors extends LoaderError>(
  *   return yield* Schema.decodeUnknown(UserSchema)(data);
  * });
  */
-export function createLoader<
-  TIn,
-  DeclaredErrors extends LoaderError,
-  SchemaType extends Schema.Schema<TIn, TIn, never> = Schema.Schema<
-    TIn,
-    TIn,
-    never
-  >
->(
-  effect: Effect.Effect<TIn, DeclaredErrors, never>,
-  schema?: SchemaType
-): Effect.Effect<TIn, DeclaredErrors | ParseError, never> {
-  if (schema) {
-    return withSchemaErrors(effect, schema);
-  }
-  return effect;
-}
+// function createLoader<
+//   TIn,
+//   DeclaredErrors extends LoaderError,
+//   SchemaType extends Schema.Schema<TIn, TIn, never> = Schema.Schema<
+//     TIn,
+//     TIn,
+//     never
+//   >
+// >(
+//   effect: Effect.Effect<TIn, DeclaredErrors, never>,
+//   schema?: SchemaType
+// ): Effect.Effect<TIn, DeclaredErrors | ParseError, never> {
+//   if (schema) {
+//     return withSchemaErrors(effect, schema);
+//   }
+//   return effect;
+// }
 
 // Type helper to extract all possible errors from an Effect
 export type InferEffectErrors<T> = T extends Effect.Effect<

@@ -32,7 +32,7 @@ export function RouterProvider<T extends readonly BaseRoute[]>({
       setRawParams(params);
       setLoaderData(
         matchedRoutes.map((route) => ({
-          state: route.loader ? "no-loader" : "loading",
+          state: route.loader ? "loading" : "no-loader",
         }))
       );
     });
@@ -78,7 +78,7 @@ export function RouterProvider<T extends readonly BaseRoute[]>({
     });
   }, [matchedRoutes, rawParams]);
 
-  // Can this be done better
+  // Ensure initial route matching on mount and when routes change
   useEffect(() => {
     handleRouteChange();
   }, [handleRouteChange]);

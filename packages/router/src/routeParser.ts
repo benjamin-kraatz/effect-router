@@ -14,14 +14,15 @@ export function routeParser(routes: readonly BaseRoute[], url: string) {
       return { routes: [], params: {} };
     }
 
+    const normalizedUrlParts = normalizeUrl(url).split("/");
     const matchingLayouts = layoutRoutes
       .filter((route) => {
-        const normalizedUrl = normalizeUrl(url).split("/");
-        while (normalizedUrl.length > 0) {
-          if (isRouteMatch(normalizedUrl.join("/"), route.path)) {
+        const tempUrlParts = [...normalizedUrlParts];
+        while (tempUrlParts.length > 0) {
+          if (isRouteMatch(tempUrlParts.join("/"), route.path)) {
             return true;
           }
-          normalizedUrl.pop();
+          tempUrlParts.pop();
         }
       })
       .sort((a, b) => {
