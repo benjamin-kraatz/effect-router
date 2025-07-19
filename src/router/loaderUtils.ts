@@ -16,6 +16,8 @@ export function withSchemaErrors<TIn, DeclaredErrors extends LoaderError>(
 /**
  * **⚠️ EXPERIMENTAL: Do not use this function yet. Let the loader infer types instead. ⚠️**
  *
+ * **ℹ️ And actually, the `loader` already seems to correctly infer types, so we might no longer need this function. ℹ️**
+ *
  * Creates a loader that automatically handles schema validation and error types.
  * This is an experimental utility that aims to simplify loader creation by combining
  * effect handling and schema validation.
