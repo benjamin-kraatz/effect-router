@@ -14,8 +14,10 @@ import { RouterContext } from "./routerHooks";
 
 export function RouterProvider<T extends readonly BaseRoute[]>({
   routes,
+  children,
 }: {
   routes: T;
+  children?: React.ReactNode;
 }) {
   const [matchedRoutes, setMatchedRoutes] = useState<T[number][]>([]);
   const [rawParams, setRawParams] = useState<Record<string, string>>({});
@@ -119,7 +121,7 @@ export function RouterProvider<T extends readonly BaseRoute[]>({
       value={{ matchedRoutes, navigate, goToUrl, rawParams, loaderData }}
     >
       <OutletWrapper depth={-1}>
-        <Outlet />
+        {children ?? <Outlet />}
       </OutletWrapper>
     </RouterContext>
   );
