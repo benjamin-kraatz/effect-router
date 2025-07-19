@@ -10,7 +10,7 @@ Effect Router is heavily inspired by the awesome [TanStack Router](https://tanst
 - **TanStack Router**: A highly flexible and typesafe router for React, designed for complex routing scenarios. It provides advanced features like nested routes, data loading, and route-based code splitting, all with a strong focus on type safety and developer experience.
 - **Effect**: A powerful library for managing effects, resources, and concurrency in TypeScript applications. It enables robust error handling, powerful dependency injection, resource management, and declarative effect composition, making complex asynchronous workflows predictable and maintainable.
 
-By integrating TanStack Router's advanced routing capabilities with Effect's robust effect management, Effect Router enables:
+By integrating TanStack Router's advanced routing capabilities with Effect's extensive ecosystem, Effect Router enables:
 
 - **End-to-end type safety**: Ensures that route parameters, loaders, and actions are all type-checked, reducing runtime errors.
 - **Declarative data loading and side effects**: Use Effect to manage data fetching, caching, and side effects directly within your routing logic.
