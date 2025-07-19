@@ -96,9 +96,9 @@ export function RouterProvider<T extends readonly BaseRoute[]>({
   function navigate<Path extends string>({
     url,
     params,
-  }: { url: Path } & (Path extends DynamicRoute
-    ? { params: ParamsForPath<Path> }
-    : { params?: never })) {
+  }: Path extends DynamicRoute
+    ? { url: Path; params: ParamsForPath<Path> }
+    : { url: Path; params?: never }) {
     const parsedUrl =
       params == null
         ? url

@@ -70,7 +70,6 @@ export type BaseRoute<Layout extends boolean = false> = {
   layout?: Layout;
   path: string;
   loader?: (...args: unknown[]) => Effect.Effect<unknown, LoaderError, never>;
-  params?: z.AnyZodObject;
 };
 
 type DefinedRoute<

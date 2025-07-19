@@ -33,6 +33,19 @@ function HomePage() {
   const { data, state } = homeRoute.useLoaderData();
   const { navigate } = useRouterContext();
 
+  // Test type safety - these should show autocomplete for valid routes
+  const testNavigate = () => {
+    // This should work
+    navigate({ url: "/about/:id", params: { id: 1 } });
+
+    // This should also work (no params route)
+    navigate({ url: "/" });
+
+    // Now let's test with a route that doesn't match the expected pattern
+    // navigate({ url: "/about/:id", params: { wrongParam: 1 } }); // This should error because wrongParam doesn't match the expected id
+    // navigate({ url: "/about/:id" }); // This should error because params are missing
+  };
+
   return (
     <>
       <div className="absolute flex flex-col items-center justify-center top-2 right-2 text-xs px-2 py-1 rounded-lg bg-red-800 font-bold hover:opacity-10 transition-opacity select-none cursor-default">
