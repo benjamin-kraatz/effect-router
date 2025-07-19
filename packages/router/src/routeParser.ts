@@ -59,7 +59,10 @@ function getParamsFromRoute(url: string, routeUrl: string) {
 
   normalizedRouteUrl.forEach((segment, index) => {
     if (segment.startsWith(":")) {
-      params[segment.slice(1)] = normalizedUrl[index];
+      const value = normalizedUrl[index];
+      if (typeof value === "string") {
+        params[segment.slice(1)] = value;
+      }
     }
   });
 
