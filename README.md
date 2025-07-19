@@ -2,7 +2,7 @@
 
 A typesafe, [Effect](https://effect.website)-based router for React applications.
 
-> [!WARN]
+> [!WARNING]
 > This project is in early stage of planning and development and not ready to use in production yet.
 
 Effect Router is heavily inspired by the awesome [TanStack Router](https://tanstack.com/router/latest) and expands the primitives with an end-to-end Effect based system. This way, Effect Router combines the power of two beasts in the React and TypeScript ecosystem:
