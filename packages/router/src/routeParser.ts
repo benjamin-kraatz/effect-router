@@ -17,12 +17,11 @@ export function routeParser(routes: readonly BaseRoute[], url: string) {
     const normalizedUrlParts = normalizeUrl(url).split("/");
     const matchingLayouts = layoutRoutes
       .filter((route) => {
-        const tempUrlParts = [...normalizedUrlParts];
-        while (tempUrlParts.length > 0) {
-          if (isRouteMatch(tempUrlParts.join("/"), route.path)) {
+        for (let i = normalizedUrlParts.length; i > 0; i--) {
+          const prefix = normalizedUrlParts.slice(0, i).join("/");
+          if (isRouteMatch(prefix, route.path)) {
             return true;
           }
-          tempUrlParts.pop();
         }
       })
       .sort((a, b) => {
