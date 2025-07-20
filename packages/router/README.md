@@ -23,4 +23,43 @@ This combination empowers developers to create super powerful, maintainable, and
 
 Effect Router is built from scratch to provide a deep integration with both technologies, ensuring a robust library that meets the needs of modern React applications.
 
+## Features
+
+- **Type-safe routing**: Full TypeScript support with compile-time route validation
+- **Effect integration**: Built on Effect for robust error handling and resource management
+- **Data loading**: Declarative data loading with Effect-based loaders
+- **RPC support**: Type-safe server functions with automatic serialization
+- **Error boundaries**: Comprehensive error handling with typed error schemas
+- **Resource management**: Automatic cleanup and resource management
+- **Observability**: Built-in support for monitoring and debugging
+
 ## Getting Started
+
+### RPC (Server Functions)
+
+Effect Router includes a powerful RPC system for type-safe server functions. See [RPC.md](./RPC.md) for complete documentation.
+
+```typescript
+import { RPC, registerRPC } from "effect-router/server";
+import { createServerFn } from "effect-router/client";
+
+// Define your RPC schema
+const UsersRpc = registerRPC({
+  Get: RPC.route("Get", {
+    payload: S.struct({ id: S.string }),
+    success: S.struct({ user: User }),
+    error: UserNotFoundError,
+  }),
+});
+
+// Create type-safe client
+const usersApi = createServerFn(UsersRpc, "Get");
+
+// Use in your application
+const user = await Effect.runPromise(
+  Effect.gen(function* (_) {
+    const response = yield* _(usersApi({ id: "user-123" }));
+    return response.user;
+  })
+);
+```

@@ -11,6 +11,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@effect/rpc": "catalog:effect",
     "@tailwindcss/vite": "^4.1.11",
     "effect": "catalog:effect",
     "effect-router": "workspace:*",
