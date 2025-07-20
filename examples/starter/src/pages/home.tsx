@@ -45,6 +45,12 @@ function HomePage() {
       >
         Go To About 1
       </button>
+      <button
+        onClick={() => navigate({ url: "/rpc-example" })}
+        style={{ marginTop: "10px" }}
+      >
+        View RPC Example
+      </button>
     </>
   );
 }
